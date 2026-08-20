@@ -8,3 +8,5 @@
 sourcemap.json
 node_modules/
 Packages/
+
+ServerPackages/

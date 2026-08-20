@@ -1,0 +1,16 @@
+﻿{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "GenTree: dev",
+      "type": "shell",
+      "command": "${workspaceFolder}/dev.bat",
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

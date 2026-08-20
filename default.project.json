@@ -7,6 +7,9 @@
       "Shared": {
         "$path": "src/shared",
         "$ignoreUnknownInstances": true
+      },
+      "Packages": {
+        "$path": "Packages"
       }
     },
 
@@ -18,8 +21,8 @@
     },
 
     "ServerStorage": {
-     "$path": "src/ServerStorage",
-     "$ignoreUnknownInstances": true
+      "$path": "src/ServerStorage",
+      "$ignoreUnknownInstances": true
     },
 
     "StarterPlayer": {
