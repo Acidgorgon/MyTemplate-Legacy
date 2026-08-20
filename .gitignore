@@ -1,0 +1,10 @@
+﻿# Project place file
+/GenTree.rbxlx
+
+# Roblox Studio lock files
+/*.rbxlx.lock
+/*.rbxl.lock
+
+sourcemap.json
+node_modules/
+Packages/
