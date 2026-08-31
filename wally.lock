@@ -10,7 +10,7 @@ dependencies = []
 [[package]]
 name = "acidg/gentree"
 version = "0.1.0"
-dependencies = [["Beziertween", "arxkdev/beziertween@0.0.3"], ["Charm", "littensy/charm@0.10.0"], ["Charmsync", "littensy/charm-sync@0.3.0"], ["Conch", "alicesaidhi/conch@0.3.1"], ["Conchui", "alicesaidhi/conch-ui@0.3.1"], ["Immut", "solarhorizon/immut@0.4.4"], ["Janitor", "howmanysmall/janitor@1.18.3"], ["Jecs", "ukendio/jecs@0.11.0"], ["Sift", "csqrl/sift@0.0.11"], ["Signal", "sleitnick/signal@2.0.3"], ["Topbarplus", "1foreverhd/topbarplus@3.4.0"], ["Uilabs", "pepeeltoro41/ui-labs@2.4.2"], ["Vide", "centau/vide@0.4.1"], ["Videcharm", "littensy/vide-charm@0.3.0"]]
+dependencies = [["Beziertween", "arxkdev/beziertween@0.0.3"], ["Charm", "littensy/charm@0.10.0"], ["Charmsync", "littensy/charm-sync@0.3.0"], ["Conch", "alicesaidhi/conch@0.3.1"], ["Conchui", "alicesaidhi/conch-ui@0.3.1"], ["Dataservicetyped", "leifstout/dataservicetyped@1.0.5"], ["Immut", "solarhorizon/immut@0.4.4"], ["Janitor", "howmanysmall/janitor@1.18.3"], ["Jecs", "ukendio/jecs@0.11.0"], ["Sift", "csqrl/sift@0.0.11"], ["Signal", "sleitnick/signal@2.0.3"], ["Topbarplus", "1foreverhd/topbarplus@3.4.0"], ["Uilabs", "pepeeltoro41/ui-labs@2.4.2"], ["Vide", "centau/vide@0.4.1"], ["Videcharm", "littensy/vide-charm@0.3.0"]]
 
 [[package]]
 name = "alicesaidhi/conch"
@@ -63,6 +63,16 @@ version = "4.0.6"
 dependencies = [["Promise", "evaera/promise@4.0.0"]]
 
 [[package]]
+name = "leifstout/dataservicetyped"
+version = "1.0.5"
+dependencies = [["Networker", "leifstout/networker@0.3.1"], ["ProfileStore", "lm-loleris/profilestore@1.0.3"], ["Signal", "sleitnick/signal@2.0.3"]]
+
+[[package]]
+name = "leifstout/networker"
+version = "0.3.1"
+dependencies = [["Signal", "sleitnick/signal@2.0.3"]]
+
+[[package]]
 name = "littensy/charm"
 version = "0.10.0"
 dependencies = []
@@ -76,6 +86,11 @@ dependencies = [["charm", "littensy/charm@0.10.0"]]
 name = "littensy/vide-charm"
 version = "0.3.0"
 dependencies = [["Vide", "centau/vide@0.3.1"], ["charm", "littensy/charm@0.10.0"]]
+
+[[package]]
+name = "lm-loleris/profilestore"
+version = "1.0.3"
+dependencies = []
 
 [[package]]
 name = "pepeeltoro41/ui-labs"
