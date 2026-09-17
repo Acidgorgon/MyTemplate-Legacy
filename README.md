@@ -13,11 +13,13 @@ cd MyGame
 rokit install
 ```
 
-Then one command (feature watcher + Blink + sourcemap + wally). PowerShell needs the dot:
+Then one command (feature watcher + Blink + sourcemap + wally):
 
-```powershell
+```bash
 ./dev
 ```
+
+On Windows PowerShell the same `./dev` works (or `dev.bat`).
 
 The first `./dev` drops the template `.git` so this folder is not connected to MyTemplate-Legacy. Add a `.keep-git` file only if you are maintaining the template itself.
 

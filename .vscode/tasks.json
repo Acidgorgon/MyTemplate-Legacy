@@ -4,7 +4,13 @@
     {
       "label": "GenTree: dev",
       "type": "shell",
-      "command": "${workspaceFolder}/dev.bat",
+      "command": "./dev",
+      "windows": {
+        "command": "${workspaceFolder}/dev.bat"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "isBackground": true,
       "problemMatcher": [],
       "group": {
