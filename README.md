@@ -19,6 +19,8 @@ Then one command (feature watcher + Blink + sourcemap + wally). PowerShell needs
 ./dev
 ```
 
+The first `./dev` drops the template `.git` so this folder is not connected to MyTemplate-Legacy. Add a `.keep-git` file only if you are maintaining the template itself.
+
 Leave that window open. Ctrl+C stops it. Or Terminal, Run Build Task in Cursor.
 
 Rojo serve is separate so it does not fight Studio: `rojo serve` or the Rojo plugin.

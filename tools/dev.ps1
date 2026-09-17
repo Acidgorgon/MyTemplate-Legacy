@@ -4,6 +4,27 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
 
+function Disconnect-TemplateGit {
+  if (Test-Path -LiteralPath (Join-Path $Root ".keep-git")) { return }
+  $gitDir = Join-Path $Root ".git"
+  if (-not (Test-Path -LiteralPath $gitDir)) { return }
+  if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
+  $origin = $null
+  try {
+    $origin = & git -C $Root remote get-url origin 2>$null
+    if ($LASTEXITCODE -ne 0) { return }
+  } catch {
+    return
+  }
+  if (-not $origin) { return }
+  if ($origin -notmatch '(?i)(?:github\.com[:/])Acidgorgon/MyTemplate-Legacy(?:\.git)?/?$') { return }
+  Write-Host "Disconnecting from template git ($origin)"
+  Remove-Item -LiteralPath $gitDir -Recurse -Force
+  Write-Host "This folder is no longer a git repo. Run git init and add your own remote when ready."
+}
+
+Disconnect-TemplateGit
+
 $RokitBin = Join-Path $env:USERPROFILE ".rokit\bin"
 if (Test-Path -LiteralPath $RokitBin) {
   $env:Path = "$RokitBin;$env:Path"

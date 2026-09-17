@@ -1,4 +1,7 @@
-﻿# Project place file
+﻿# Keep git in the template working copy. Clones do not get this file.
+.keep-git
+
+# Project place file
 /GenTree.rbxlx
 
 # Roblox Studio lock files
