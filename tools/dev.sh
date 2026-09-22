@@ -16,8 +16,16 @@ disconnect_template_git() {
   [ -n "$origin" ] || return 0
   echo "$origin" | grep -qiE 'github\.com[:/]Acidgorgon/MyTemplate-Legacy(\.git)?/?$' || return 0
   echo "Disconnecting from template git ($origin)"
-  rm -rf "$ROOT/.git"
-  echo "This folder is no longer a git repo. Run git init and add your own remote when ready."
+  # Drop the remote first so a locked .git is no longer the template origin.
+  git -C "$ROOT" remote remove origin >/dev/null 2>&1 || true
+  # Editors may keep .git/cursor open; skip it so a partial delete cannot abort ./dev.
+  find "$ROOT/.git" -mindepth 1 -maxdepth 1 ! -name cursor -exec rm -rf {} + 2>/dev/null || true
+  rmdir "$ROOT/.git" 2>/dev/null || true
+  if [ -f "$ROOT/.git/config" ]; then
+    echo "Could not fully remove .git (files in use). Template remote is gone; ./dev will continue."
+  else
+    echo "This folder is no longer a git repo. Run git init and add your own remote when ready."
+  fi
 }
 
 file_mtime() {

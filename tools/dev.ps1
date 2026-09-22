@@ -19,8 +19,24 @@ function Disconnect-TemplateGit {
   if (-not $origin) { return }
   if ($origin -notmatch '(?i)(?:github\.com[:/])Acidgorgon/MyTemplate-Legacy(?:\.git)?/?$') { return }
   Write-Host "Disconnecting from template git ($origin)"
-  Remove-Item -LiteralPath $gitDir -Recurse -Force
-  Write-Host "This folder is no longer a git repo. Run git init and add your own remote when ready."
+  # Drop the remote first so a locked .git is no longer the template origin.
+  try {
+    & git -C $Root remote remove origin 2>$null
+  } catch {}
+  # Cursor keeps .git/cursor open on Windows; deleting those files can fail.
+  Get-ChildItem -LiteralPath $gitDir -Force -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -ne "cursor" } |
+    ForEach-Object {
+      Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+    }
+  if (-not (Get-ChildItem -LiteralPath $gitDir -Force -ErrorAction SilentlyContinue)) {
+    Remove-Item -LiteralPath $gitDir -Force -ErrorAction SilentlyContinue
+  }
+  if (Test-Path -LiteralPath (Join-Path $gitDir "config")) {
+    Write-Host "Could not fully remove .git (files in use). Template remote is gone; ./dev will continue."
+  } else {
+    Write-Host "This folder is no longer a git repo. Run git init and add your own remote when ready."
+  }
 }
 
 Disconnect-TemplateGit
