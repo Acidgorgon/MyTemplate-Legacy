@@ -81,6 +81,7 @@ last_wally="$(file_mtime "$ROOT/wally.toml")"
 
 stop_matching "events.blink -w"
 stop_matching "sourcemap default.project.json"
+stop_matching "studio-sync.py"
 
 GENTREE_WATCH_LIB=1
 # shellcheck source=watch-features.sh
@@ -88,6 +89,7 @@ GENTREE_WATCH_LIB=1
 
 blink_pid=""
 sourcemap_pid=""
+studiosync_pid=""
 
 cleanup() {
   if [ -n "$blink_pid" ]; then
@@ -95,6 +97,9 @@ cleanup() {
   fi
   if [ -n "$sourcemap_pid" ]; then
     kill "$sourcemap_pid" 2>/dev/null || true
+  fi
+  if [ -n "$studiosync_pid" ]; then
+    kill "$studiosync_pid" 2>/dev/null || true
   fi
 }
 trap cleanup EXIT INT TERM
@@ -115,7 +120,29 @@ else
   sourcemap_pid=$!
 fi
 
-echo "running: features + blink -w + sourcemap --watch. Ctrl+C to stop."
+python_bin="$(find_tool python3)"
+if [ -z "$python_bin" ]; then
+  python_bin="$(find_tool python)"
+fi
+if [ -z "$python_bin" ]; then
+  echo "python not found, skip studio sync"
+else
+  "$python_bin" tools/studio-sync.py >/dev/null 2>&1 &
+  studiosync_pid=$!
+  plugin_source="$ROOT/tools/StudioSyncPlugin.luau"
+  plugin_dir=""
+  if [ -n "${LOCALAPPDATA:-}" ] && [ -d "$LOCALAPPDATA/Roblox/Plugins" ]; then
+    plugin_dir="$LOCALAPPDATA/Roblox/Plugins"
+  elif [ -d "$HOME/Documents/Roblox/Plugins" ]; then
+    plugin_dir="$HOME/Documents/Roblox/Plugins"
+  fi
+  if [ -n "$plugin_dir" ] && [ -f "$plugin_source" ] && ! cmp -s "$plugin_source" "$plugin_dir/RepoStudioSync.lua"; then
+    cp "$plugin_source" "$plugin_dir/RepoStudioSync.lua"
+    echo "installed Studio sync plugin (restart Studio to load it)"
+  fi
+fi
+
+echo "running: features + blink -w + sourcemap --watch + studio sync. Ctrl+C to stop."
 
 blink_warned=0
 sourcemap_warned=0

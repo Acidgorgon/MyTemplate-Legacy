@@ -90,6 +90,7 @@ $lastWally = (Get-Item -LiteralPath $WallyToml).LastWriteTimeUtc
 Stop-Matching "watch-features\.ps1"
 Stop-Matching "events\.blink -w"
 Stop-Matching "sourcemap default\.project\.json"
+Stop-Matching "studio-sync\.py"
 
 $GENTREE_WATCH_LIB = $true
 . $WatcherScript
@@ -109,7 +110,24 @@ if ($null -eq $rojo) {
   $procs.sourcemap = Start-Hidden $rojo "sourcemap default.project.json -o sourcemap.json --watch"
 }
 
-Write-Host "running: features + blink -w + sourcemap --watch. Ctrl+C to stop."
+$python = Find-Tool "python"
+if ($null -eq $python) {
+  Write-Host "python not found, skip studio sync"
+} else {
+  $procs.studiosync = Start-Hidden $python "tools\studio-sync.py"
+  $pluginSource = Join-Path $PSScriptRoot "StudioSyncPlugin.luau"
+  $pluginDir = Join-Path $env:LOCALAPPDATA "Roblox\Plugins"
+  $pluginTarget = Join-Path $pluginDir "RepoStudioSync.lua"
+  if ((Test-Path -LiteralPath $pluginDir) -and (Test-Path -LiteralPath $pluginSource)) {
+    $same = (Test-Path -LiteralPath $pluginTarget) -and ((Get-FileHash -LiteralPath $pluginTarget).Hash -eq (Get-FileHash -LiteralPath $pluginSource).Hash)
+    if (-not $same) {
+      Copy-Item -LiteralPath $pluginSource -Destination $pluginTarget -Force
+      Write-Host "installed Studio sync plugin (restart Studio to load it)"
+    }
+  }
+}
+
+Write-Host "running: features + blink -w + sourcemap --watch + studio sync. Ctrl+C to stop."
 
 $warned = @{}
 try {
