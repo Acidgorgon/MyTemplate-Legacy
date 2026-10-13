@@ -120,11 +120,18 @@ $GENTREE_WATCH_LIB = $true
 . $WatcherScript
 
 $procs = @{}
+$BlinkLogs = @()
+$BlinkSeen = @{}
 $blink = Find-Tool "blink"
 if ($null -eq $blink) {
   Write-Host "blink not found, skip"
 } else {
-  $procs.blink = Start-Hidden $blink "events.blink -w"
+  # Keep Blink's output: compile errors go to .blink.log (stdout) / .blink.err.log (stderr)
+  # and are echoed to this window by the loop below.
+  $BlinkLogs = @((Join-Path $Root ".blink.log"), (Join-Path $Root ".blink.err.log"))
+  foreach ($log in $BlinkLogs) { Set-Content -LiteralPath $log -Value $null }
+  $procs.blink = Start-Process -FilePath $blink -ArgumentList "events.blink -w" -WorkingDirectory $Root -PassThru -WindowStyle Hidden `
+    -RedirectStandardOutput $BlinkLogs[0] -RedirectStandardError $BlinkLogs[1]
 }
 
 $rojo = Find-Tool "rojo"
@@ -158,6 +165,13 @@ try {
   while ($true) {
     Invoke-FeatureTick
     Start-Sleep -Seconds 1
+    foreach ($log in $BlinkLogs) {
+      $lines = @(Get-Content -LiteralPath $log -ErrorAction SilentlyContinue)
+      $seen = if ($BlinkSeen.ContainsKey($log)) { $BlinkSeen[$log] } else { 0 }
+      if ($lines.Count -lt $seen) { $seen = 0 }
+      for ($i = $seen; $i -lt $lines.Count; $i++) { Write-Host "[blink] $($lines[$i])" }
+      $BlinkSeen[$log] = $lines.Count
+    }
     foreach ($name in @($procs.Keys)) {
       $p = $procs[$name]
       if ($p -and $p.HasExited -and -not $warned.ContainsKey($name)) {

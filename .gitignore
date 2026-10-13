@@ -20,3 +20,7 @@ ServerPackages/
 # ./check output and downloaded Roblox type definitions
 build/
 .cache/
+
+# Blink watch output (tools/dev.sh, tools/dev.ps1)
+.blink.log
+.blink.err.log

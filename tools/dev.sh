@@ -129,7 +129,9 @@ blink="$(find_tool blink)"
 if [ -z "$blink" ]; then
   echo "blink not found, skip"
 else
-  "$blink" events.blink -w >/dev/null 2>&1 &
+  # Keep Blink's output: compile errors go to this window (prefixed) and to .blink.log.
+  : >"$ROOT/.blink.log"
+  "$blink" events.blink -w > >(tee -a "$ROOT/.blink.log" | awk '{ print "[blink] " $0; fflush() }') 2>&1 &
   blink_pid=$!
 fi
 
@@ -172,7 +174,7 @@ while true; do
   sleep 1
   if [ -n "$blink_pid" ] && [ "$blink_warned" -eq 0 ] && ! kill -0 "$blink_pid" 2>/dev/null; then
     blink_warned=1
-    echo "blink exited"
+    echo "blink exited (see .blink.log)"
   fi
   if [ -n "$sourcemap_pid" ] && [ "$sourcemap_warned" -eq 0 ] && ! kill -0 "$sourcemap_pid" 2>/dev/null; then
     sourcemap_warned=1
