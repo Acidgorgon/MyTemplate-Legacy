@@ -50,3 +50,12 @@ Setup, once per game: put the place id of the game in `tools/studio-sync.json` (
   - `python tools/studio-sync.py conflicts` lists held files
   - `python tools/studio-sync.py take-studio <file|all>` uses the Studio version
   - `python tools/studio-sync.py take-disk <file|all>` keeps the repo version
+
+### Place tree (Studio-only assets)
+
+The plugin also sends a read-only snapshot of the place's instance tree, so models, parts, sounds, images and folders that only exist in Studio (for example in `Workspace`, `ReplicatedStorage.Assets`, `ServerStorage`, `StarterGui`, `Lighting`, `SoundService`) can be browsed and their Roblox paths copied for an AI or a teammate.
+
+- What syncs: names, classes and nesting, plus a few properties per asset (`Size` of parts, `MeshId`/`TextureID`, `SoundId`, decal `Texture`, `Image`, `AnimationId`). The assets themselves stay in the place file; nothing is exported into the repo and nothing is ever written back into Studio. Scripts still sync both ways as above.
+- Stored in `.studio-sync/tree.json` and served at `GET http://127.0.0.1:34873/tree`. It is sent when the plugin connects and again about 1.5 s after anything is added, removed or renamed (plus a rescan every 30 s); an unchanged tree is not re-sent.
+- Settings in `tools/studio-sync.json`: `treeServices` (services to include), `treeDepth` (default 12 levels below a service), `treeMaxNodes` (default 20000; past that the tree is cut and marked `truncated`). Cameras, `Players`, Terrain contents and the insides of Wally `Packages` folders are left out.
+- Tests: `python3 -m unittest tools/test_studio_sync.py`

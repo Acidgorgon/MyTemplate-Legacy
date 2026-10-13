@@ -1,5 +1,8 @@
 {
   "port": 34873,
   "placeIds": [],
-  "skip": ["Packages", "src/ServerStorage"]
+  "skip": ["Packages", "src/ServerStorage"],
+  "treeServices": ["Workspace", "ReplicatedStorage", "ReplicatedFirst", "ServerScriptService", "ServerStorage", "StarterGui", "StarterPack", "StarterPlayer", "Lighting", "SoundService", "Teams"],
+  "treeDepth": 12,
+  "treeMaxNodes": 20000
 }
