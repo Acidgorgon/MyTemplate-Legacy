@@ -1,2 +1,2 @@
 option ClientOutput = "src/shared/events/client.luau"
-option ServerOutput = "src/shared/events/server.luau"
+option ServerOutput = "src/server/events/server.luau"
