@@ -150,9 +150,19 @@ local Queue: any = {
     Unreliable = table.create(256)
 }
 
+Queue.Reliable[0] = table.create(256)
+local function ReadEVENT_PlayerDataSync(): (any)
+	RecieveInstanceCursor += 1
+	local Value = RecieveInstances[RecieveInstanceCursor]
+	return Value
+end
+
 if not RunService:IsRunning() then
 	local NOOP = function() end
 	local Returns = table.freeze({
+	PlayerDataSync = {
+		On = NOOP
+	},
 	})
 	return Returns :: BLINK_EVENTS_SYMBOL
 end
@@ -190,6 +200,17 @@ Reliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: {Instance})
 		-- Read BLOCK: 1 bytes
 		local BLOCK_START = Read(1)
 		local Index = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
+		if Index == 0 then
+			local Value: any = ReadEVENT_PlayerDataSync()
+			if Events.Reliable[0] ~= nil then
+				Events.Reliable[0](Value)
+			else
+				if #Queue.Reliable[0] > 256 then
+					warn("[Blink]: Event queue of \"PlayerDataSync\" exceeded 256, did you forget to implement a listener?")
+				end
+				table.insert(Queue.Reliable[0], {Value} :: {any})
+			end
+		end
 	end
 end)
 Unreliable.OnClientEvent:Connect(function(Buffer: buffer, Instances: {Instance})
@@ -209,6 +230,20 @@ end)
 local Returns = table.freeze({
 	StepReplication = StepReplication,
 
+	PlayerDataSync = {
+		On = function(Listener: (Value: any) -> ()): () -> ()
+			Events.Reliable[0] = Listener
+			for Index, Arguments in Queue.Reliable[0] do
+				Listener(table.unpack(Arguments))
+			end
+			Queue.Reliable[0] = {}
+			return function (): ()
+				if Events.Reliable[0] == Listener then
+					Events.Reliable[0] = nil
+				end
+			end
+		end
+	},
 })
 type BLINK_EVENTS_SYMBOL = typeof(Returns)
 return Returns :: BLINK_EVENTS_SYMBOL
