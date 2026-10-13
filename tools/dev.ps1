@@ -58,6 +58,30 @@ function Invoke-WallyInstall {
   Write-Host "wally install"
   & $wally install
   if ($LASTEXITCODE -ne 0) { throw "wally install failed ($LASTEXITCODE)" }
+  Invoke-PackageTypes
+}
+
+# Wally thunks hide package types from luau-lsp; wally-package-types re-exports them.
+function Invoke-PackageTypes {
+  # Local override: with "Stop", Windows PowerShell turns redirected native stderr into an error.
+  $ErrorActionPreference = "Continue"
+  $tool = Find-Tool "wally-package-types"
+  $rojo = Find-Tool "rojo"
+  if ($null -eq $tool -or $null -eq $rojo) {
+    Write-Host "wally-package-types or rojo not found, skip package types"
+    return
+  }
+  & $rojo sourcemap default.project.json -o sourcemap.json *> $null
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "sourcemap failed, skip package types"
+    return
+  }
+  & $tool --sourcemap sourcemap.json Packages/ *> $null
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host "package types ready"
+  } else {
+    Write-Host "wally-package-types reported errors"
+  }
 }
 
 function Stop-Matching([string]$Pattern) {
@@ -96,11 +120,18 @@ $GENTREE_WATCH_LIB = $true
 . $WatcherScript
 
 $procs = @{}
+$BlinkLogs = @()
+$BlinkSeen = @{}
 $blink = Find-Tool "blink"
 if ($null -eq $blink) {
   Write-Host "blink not found, skip"
 } else {
-  $procs.blink = Start-Hidden $blink "events.blink -w"
+  # Keep Blink's output: compile errors go to .blink.log (stdout) / .blink.err.log (stderr)
+  # and are echoed to this window by the loop below.
+  $BlinkLogs = @((Join-Path $Root ".blink.log"), (Join-Path $Root ".blink.err.log"))
+  foreach ($log in $BlinkLogs) { Set-Content -LiteralPath $log -Value $null }
+  $procs.blink = Start-Process -FilePath $blink -ArgumentList "events.blink -w" -WorkingDirectory $Root -PassThru -WindowStyle Hidden `
+    -RedirectStandardOutput $BlinkLogs[0] -RedirectStandardError $BlinkLogs[1]
 }
 
 $rojo = Find-Tool "rojo"
@@ -134,6 +165,13 @@ try {
   while ($true) {
     Invoke-FeatureTick
     Start-Sleep -Seconds 1
+    foreach ($log in $BlinkLogs) {
+      $lines = @(Get-Content -LiteralPath $log -ErrorAction SilentlyContinue)
+      $seen = if ($BlinkSeen.ContainsKey($log)) { $BlinkSeen[$log] } else { 0 }
+      if ($lines.Count -lt $seen) { $seen = 0 }
+      for ($i = $seen; $i -lt $lines.Count; $i++) { Write-Host "[blink] $($lines[$i])" }
+      $BlinkSeen[$log] = $lines.Count
+    }
     foreach ($name in @($procs.Keys)) {
       $p = $procs[$name]
       if ($p -and $p.HasExited -and -not $warned.ContainsKey($name)) {

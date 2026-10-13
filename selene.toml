@@ -1,4 +1,6 @@
 std = "roblox"
+# Blink output is generated from events.blink; lint the schema, not the output.
+exclude = ["src/shared/events/*", "src/server/events/*"]
 
 [lints]
 mixed_tables = "allow"
