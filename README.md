@@ -35,6 +35,12 @@ With `./dev` running, add a folder:
 
 The watcher creates the server Feature + `InventoryController`. Delete that shared folder and those copies go with it. Server-only Features (never in shared) are left alone.
 
+## Blink events
+
+`events.blink` compiles to two modules. The client module goes to `src/shared/events/client.luau` (ReplicatedStorage), and the server module goes to `src/server/events/server.luau` (ServerScriptService), so clients never receive the server remotes module. Server code requires `ServerScriptService.Server.events.server`.
+
+Places made before this change may still have a `ReplicatedStorage.Shared.events.server` ModuleScript: Rojo will not remove it because the folder uses `$ignoreUnknownInstances`, so delete it in Studio once.
+
 ## Tools
 
 Pinned in `rokit.toml`: Rojo, Wally, Blink, Selene. After `wally install`, ModuleLoader needs `ReplicatedStorage.Packages.Janitor`.
