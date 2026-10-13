@@ -1,2 +1,11 @@
 option ClientOutput = "src/shared/events/client.luau"
 option ServerOutput = "src/shared/events/server.luau"
+
+-- Player data replication (charm-sync payloads), server -> client only.
+-- There is deliberately no client -> server data event.
+event PlayerDataSync {
+	From: Server,
+	Type: Reliable,
+	Call: SingleSync,
+	Data: unknown
+}
