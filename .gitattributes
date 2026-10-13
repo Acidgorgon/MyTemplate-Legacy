@@ -1,0 +1,9 @@
+# Text files are stored and checked out with LF so Rojo, StyLua and Studio sync see the same bytes everywhere.
+* text=auto eol=lf
+
+# cmd.exe can misread batch files with LF endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.rbxl binary
+*.rbxm binary

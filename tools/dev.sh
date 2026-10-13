@@ -49,6 +49,27 @@ wally_install() {
   fi
   echo "wally install"
   "$wally" install
+  package_types
+}
+
+# Wally thunks hide package types from luau-lsp; wally-package-types re-exports them.
+package_types() {
+  local tool rojo
+  tool="$(find_tool wally-package-types)"
+  rojo="$(find_tool rojo)"
+  if [ -z "$tool" ] || [ -z "$rojo" ]; then
+    echo "wally-package-types or rojo not found, skip package types"
+    return 0
+  fi
+  if ! "$rojo" sourcemap default.project.json -o sourcemap.json >/dev/null 2>&1; then
+    echo "sourcemap failed, skip package types"
+    return 0
+  fi
+  if "$tool" --sourcemap sourcemap.json Packages/ >/dev/null 2>&1; then
+    echo "package types ready"
+  else
+    echo "wally-package-types reported errors"
+  fi
 }
 
 stop_matching() {

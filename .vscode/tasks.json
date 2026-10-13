@@ -17,6 +17,19 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "GenTree: check",
+      "type": "shell",
+      "command": "./check",
+      "windows": {
+        "command": "${workspaceFolder}/check.bat"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "group": "test"
     }
   ]
 }

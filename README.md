@@ -35,9 +35,40 @@ With `./dev` running, add a folder:
 
 The watcher creates the server Feature + `InventoryController`. Delete that shared folder and those copies go with it. Server-only Features (never in shared) are left alone.
 
+## Check
+
+Before pushing:
+
+```bash
+./check
+```
+
+On Windows PowerShell `./check` works too (or `check.bat`, or Terminal, Run Task, GenTree: check). It runs, in order: Blink, `wally install` if `Packages/` is missing, `rojo sourcemap`, `luau-lsp analyze` on `src`, `selene src`, `stylua --check src`, and `rojo build` to `build/check.rbxlx`. A step whose tool is missing is skipped with a note; any failed step makes it exit non-zero. The Roblox type definitions for luau-lsp are downloaded once into `.cache/luau-lsp/` (delete the file to refresh). Blink output is excluded from types, lint and format.
+
 ## Tools
 
-Pinned in `rokit.toml`: Rojo, Wally, Blink, Selene. After `wally install`, ModuleLoader needs `ReplicatedStorage.Packages.Janitor`.
+Pinned in `rokit.toml`: Rojo, Wally, Blink, Selene, StyLua, luau-lsp, wally-package-types. After `wally install`, ModuleLoader needs `ReplicatedStorage.Packages.Janitor`; `./dev` then runs wally-package-types so package types show up in the editor.
+
+- `.luaurc`: nonstrict by default. New modules should start with `--!strict`.
+- `.stylua.toml`: tabs, 120 columns, double quotes. VS Code formats on save with the StyLua extension.
+- `.vscode/`: recommended extensions (luau-lsp, StyLua, Selene, Rojo) and settings. luau-lsp reads the `sourcemap.json` that `./dev` keeps up to date.
+- `AGENTS.md`: rules for AI agents working in a game made from this template (`CLAUDE.md` points to it).
+
+## ModuleLoader
+
+`src/client/Client/init.client.luau` calls `ModuleLoader.InitFolder` on the Controllers folder. Each module may define:
+
+- `Init(janitor)`: runs one module at a time; set up state and connections.
+- `Start()`: runs in its own thread after every `Init`.
+- `OnCharacterAdded(character)`, `OnCharacterRemoving(character)`: client only.
+- `Shutdown()`: server only, from `game:BindToClose`, in reverse load order.
+- `Priority`: number, higher loads first (default 0, ties by name).
+
+A module that errors prints `[ModuleLoader] <Module>.<Phase> failed:` and the others keep going. When loading is done the folder has the attribute `Ready = true`.
+
+Server features run their own `Init` and `Start` from the `init.server.luau` the watcher creates.
+
+For client to server Blink events, rate-limit on the server with `Shared.Modules.Utils.RateLimit` (example in the file) and validate every argument.
 
 ## Studio sync
 

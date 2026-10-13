@@ -16,3 +16,7 @@ ServerPackages/
 
 # Studio sync working files
 .studio-sync/
+
+# ./check output and downloaded Roblox type definitions
+build/
+.cache/

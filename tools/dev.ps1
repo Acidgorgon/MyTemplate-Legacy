@@ -58,6 +58,30 @@ function Invoke-WallyInstall {
   Write-Host "wally install"
   & $wally install
   if ($LASTEXITCODE -ne 0) { throw "wally install failed ($LASTEXITCODE)" }
+  Invoke-PackageTypes
+}
+
+# Wally thunks hide package types from luau-lsp; wally-package-types re-exports them.
+function Invoke-PackageTypes {
+  # Local override: with "Stop", Windows PowerShell turns redirected native stderr into an error.
+  $ErrorActionPreference = "Continue"
+  $tool = Find-Tool "wally-package-types"
+  $rojo = Find-Tool "rojo"
+  if ($null -eq $tool -or $null -eq $rojo) {
+    Write-Host "wally-package-types or rojo not found, skip package types"
+    return
+  }
+  & $rojo sourcemap default.project.json -o sourcemap.json *> $null
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "sourcemap failed, skip package types"
+    return
+  }
+  & $tool --sourcemap sourcemap.json Packages/ *> $null
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host "package types ready"
+  } else {
+    Write-Host "wally-package-types reported errors"
+  }
 }
 
 function Stop-Matching([string]$Pattern) {
