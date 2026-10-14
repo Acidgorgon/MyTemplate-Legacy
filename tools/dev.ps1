@@ -111,7 +111,9 @@ if ($null -eq $rojo) {
 }
 
 $python = Find-Tool "python"
-if ($null -eq $python) {
+if ($env:FORGE_SYNC -eq "1") {
+  Write-Host "RBX Forge handles Studio sync, skip studio-sync.py"
+} elseif ($null -eq $python) {
   Write-Host "python not found, skip studio sync"
 } else {
   $procs.studiosync = Start-Hidden $python "tools\studio-sync.py"

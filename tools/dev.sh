@@ -124,7 +124,9 @@ python_bin="$(find_tool python3)"
 if [ -z "$python_bin" ]; then
   python_bin="$(find_tool python)"
 fi
-if [ -z "$python_bin" ]; then
+if [ "${FORGE_SYNC:-}" = "1" ]; then
+  echo "RBX Forge handles Studio sync, skip studio-sync.py"
+elif [ -z "$python_bin" ]; then
   echo "python not found, skip studio sync"
 else
   "$python_bin" tools/studio-sync.py >/dev/null 2>&1 &
