@@ -1,4 +1,4 @@
-# Dev loop: feature watcher (in this window), Blink, sourcemap, wally on change.
+# Dev loop: feature watcher (in this window), Current (events.blink), sourcemap, wally on change.
 # Does not start Rojo serve. Ctrl+C stops everything this script started.
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
@@ -96,9 +96,11 @@ $GENTREE_WATCH_LIB = $true
 . $WatcherScript
 
 $procs = @{}
-$blink = Find-Tool "blink"
+# Current (Acidgorgon/current) compiles events.blink; plain Blink still works for older checkouts.
+$blink = Find-Tool "current"
+if ($null -eq $blink) { $blink = Find-Tool "blink" }
 if ($null -eq $blink) {
-  Write-Host "blink not found, skip"
+  Write-Host "current not found, skip (run rokit install)"
 } else {
   $procs.blink = Start-Hidden $blink "events.blink -w"
 }
@@ -127,7 +129,7 @@ if ($null -eq $python) {
   }
 }
 
-Write-Host "running: features + blink -w + sourcemap --watch + studio sync. Ctrl+C to stop."
+Write-Host "running: features + current -w + sourcemap --watch + studio sync. Ctrl+C to stop."
 
 $warned = @{}
 try {
