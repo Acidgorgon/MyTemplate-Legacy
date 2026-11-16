@@ -13,7 +13,7 @@ cd MyGame
 rokit install
 ```
 
-Then one command (feature watcher + Blink + sourcemap + wally):
+Then one command (feature watcher + Current + sourcemap + wally):
 
 ```bash
 ./dev
@@ -37,7 +37,7 @@ The watcher creates the server Feature + `InventoryController`. Delete that shar
 
 ## Tools
 
-Pinned in `rokit.toml`: Rojo, Wally, Blink, Selene. After `wally install`, ModuleLoader needs `ReplicatedStorage.Packages.Janitor`.
+Pinned in `rokit.toml`: Rojo, Wally, [Current](https://acidgorgon.github.io/Current/) (networking, compiles `events.blink`; a faster two-way fork of Blink), Selene. After `wally install`, ModuleLoader needs `ReplicatedStorage.Packages.Janitor`.
 
 ## Studio sync
 
