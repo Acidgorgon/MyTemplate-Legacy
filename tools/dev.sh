@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Dev loop: feature watcher (in this window), Blink, sourcemap, wally on change.
+# Dev loop: feature watcher (in this window), Current (events.blink), sourcemap, wally on change.
 # Does not start Rojo serve. Ctrl+C stops everything this script started.
 # bash 3.2 compatible (macOS /bin/bash).
 set -euo pipefail
@@ -104,9 +104,11 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-blink="$(find_tool blink)"
+# Current (Acidgorgon/current) compiles events.blink; plain Blink still works for older checkouts.
+blink="$(find_tool current)"
+[ -z "$blink" ] && blink="$(find_tool blink)"
 if [ -z "$blink" ]; then
-  echo "blink not found, skip"
+  echo "current not found, skip (run rokit install)"
 else
   "$blink" events.blink -w >/dev/null 2>&1 &
   blink_pid=$!
@@ -142,7 +144,7 @@ else
   fi
 fi
 
-echo "running: features + blink -w + sourcemap --watch + studio sync. Ctrl+C to stop."
+echo "running: features + current -w + sourcemap --watch + studio sync. Ctrl+C to stop."
 
 blink_warned=0
 sourcemap_warned=0
@@ -151,7 +153,7 @@ while true; do
   sleep 1
   if [ -n "$blink_pid" ] && [ "$blink_warned" -eq 0 ] && ! kill -0 "$blink_pid" 2>/dev/null; then
     blink_warned=1
-    echo "blink exited"
+    echo "current exited"
   fi
   if [ -n "$sourcemap_pid" ] && [ "$sourcemap_warned" -eq 0 ] && ! kill -0 "$sourcemap_pid" 2>/dev/null; then
     sourcemap_warned=1
