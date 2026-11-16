@@ -17,6 +17,9 @@
       "Server": {
         "$path": "src/server",
         "$ignoreUnknownInstances": true
+      },
+      "Anchor": {
+        "$path": "vendor/Anchor/src"
       }
     },
 

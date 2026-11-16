@@ -89,6 +89,7 @@ $lastWally = (Get-Item -LiteralPath $WallyToml).LastWriteTimeUtc
 
 Stop-Matching "watch-features\.ps1"
 Stop-Matching "events\.blink -w"
+Stop-Matching "game\.ripple --out"
 Stop-Matching "sourcemap default\.project\.json"
 Stop-Matching "studio-sync\.py"
 
@@ -103,6 +104,14 @@ if ($null -eq $blink) {
   Write-Host "current not found, skip (run rokit install)"
 } else {
   $procs.blink = Start-Hidden $blink "events.blink -w"
+}
+
+# Ripple (Acidgorgon/Ripple) compiles game.ripple into src/shared/Ripple.
+$ripple = Find-Tool "ripple"
+if ($null -eq $ripple) {
+  Write-Host "ripple not found, skip (run rokit install)"
+} elseif (Test-Path -LiteralPath (Join-Path $Root "game.ripple")) {
+  $procs.ripple = Start-Hidden $ripple "game.ripple --out src/shared/Ripple -w"
 }
 
 $rojo = Find-Tool "rojo"
@@ -129,7 +138,7 @@ if ($null -eq $python) {
   }
 }
 
-Write-Host "running: features + current -w + sourcemap --watch + studio sync. Ctrl+C to stop."
+Write-Host "running: features + current -w + ripple -w + sourcemap --watch + studio sync. Ctrl+C to stop."
 
 $warned = @{}
 try {

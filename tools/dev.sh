@@ -80,6 +80,7 @@ fi
 last_wally="$(file_mtime "$ROOT/wally.toml")"
 
 stop_matching "events.blink -w"
+stop_matching "game.ripple --out"
 stop_matching "sourcemap default.project.json"
 stop_matching "studio-sync.py"
 
@@ -88,12 +89,16 @@ GENTREE_WATCH_LIB=1
 . "$WATCHER_SCRIPT"
 
 blink_pid=""
+ripple_pid=""
 sourcemap_pid=""
 studiosync_pid=""
 
 cleanup() {
   if [ -n "$blink_pid" ]; then
     kill "$blink_pid" 2>/dev/null || true
+  fi
+  if [ -n "$ripple_pid" ]; then
+    kill "$ripple_pid" 2>/dev/null || true
   fi
   if [ -n "$sourcemap_pid" ]; then
     kill "$sourcemap_pid" 2>/dev/null || true
@@ -112,6 +117,15 @@ if [ -z "$blink" ]; then
 else
   "$blink" events.blink -w >/dev/null 2>&1 &
   blink_pid=$!
+fi
+
+# Ripple (Acidgorgon/Ripple) compiles game.ripple into src/shared/Ripple.
+ripple="$(find_tool ripple)"
+if [ -z "$ripple" ]; then
+  echo "ripple not found, skip (run rokit install)"
+elif [ -f game.ripple ]; then
+  "$ripple" game.ripple --out src/shared/Ripple -w >/dev/null 2>&1 &
+  ripple_pid=$!
 fi
 
 rojo="$(find_tool rojo)"
@@ -144,7 +158,7 @@ else
   fi
 fi
 
-echo "running: features + current -w + sourcemap --watch + studio sync. Ctrl+C to stop."
+echo "running: features + current -w + ripple -w + sourcemap --watch + studio sync. Ctrl+C to stop."
 
 blink_warned=0
 sourcemap_warned=0

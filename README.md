@@ -13,7 +13,7 @@ cd MyGame
 rokit install
 ```
 
-Then one command (feature watcher + Current + sourcemap + wally):
+Then one command (feature watcher + Current + Ripple + sourcemap + wally):
 
 ```bash
 ./dev
@@ -37,7 +37,42 @@ The watcher creates the server Feature + `InventoryController`. Delete that shar
 
 ## Tools
 
-Pinned in `rokit.toml`: Rojo, Wally, [Current](https://acidgorgon.github.io/Current/) (networking, compiles `events.blink`; a faster two-way fork of Blink), Selene. After `wally install`, ModuleLoader needs `ReplicatedStorage.Packages.Janitor`.
+Pinned in `rokit.toml`: Rojo, Wally, [Current](https://acidgorgon.github.io/Current/) (networking, compiles `events.blink`; a faster two-way fork of Blink), [Ripple](https://acidgorgon.github.io/Ripple/) (state sync, compiles `game.ripple`), Selene. After `wally install`, ModuleLoader needs `ReplicatedStorage.Packages.Janitor`.
+
+## Player data and state
+
+Saving uses [Anchor](https://acidgorgon.github.io/Anchor/) (session-locked, a drop-in upgrade of ProfileStore), vendored in `vendor/Anchor` and synced to `ServerScriptService.Anchor`. Replication uses [Ripple](https://acidgorgon.github.io/Ripple/): describe the state in `game.ripple`, and `./dev` regenerates `src/shared/Ripple/Server.luau` and `Client.luau` whenever you save it (or run `ripple game.ripple --out src/shared/Ripple`). Commit the generated files.
+
+Server:
+
+```lua
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Anchor = require(game.ServerScriptService.Anchor)
+local Ripple = require(ReplicatedStorage.Shared.Ripple.Server)
+
+local Data = Anchor.new("Main", { Coins = 0 })
+Data:UseRipple(function(player, profile)
+	return Ripple.PlayerData.new(player, profile.Data) -- replicates the saved table to its player
+end)
+Data:Bind() -- loads on join, saves on leave and shutdown
+
+Data:Update(player, function(state)
+	state.Coins += 10 -- saved and sent to the client at the end of the frame
+end)
+```
+
+Client:
+
+```lua
+local Ripple = require(ReplicatedStorage.Shared.Ripple.Client)
+
+local data = Ripple.PlayerData.wait()
+Ripple.observe(data, "Coins", function(coins)
+	print("Coins:", coins)
+end)
+```
+
+With Vide, `Ripple.useVide(vide)` once, then `Ripple.source(data, "Coins")` is a Vide source. In Studio, set the `Mock` attribute on the Anchor module to keep test sessions off the real DataStore.
 
 ## Studio sync
 

@@ -1,0 +1,10 @@
+-- Ripple schema: replicated game state (https://acidgorgon.github.io/Ripple/).
+-- ./dev regenerates src/shared/Ripple/Server.luau and Client.luau on save.
+-- Rename or replace PlayerData with your game's own states.
+
+state PlayerData {
+	Scope: Player,
+	Data: struct {
+		Coins: f64,
+	},
+}
