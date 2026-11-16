@@ -10,7 +10,7 @@ dependencies = []
 [[package]]
 name = "acidg/gentree"
 version = "0.1.0"
-dependencies = [["Beziertween", "arxkdev/beziertween@0.0.3"], ["Charm", "littensy/charm@0.10.0"], ["Charmsync", "littensy/charm-sync@0.3.0"], ["Conch", "alicesaidhi/conch@0.3.1"], ["Conchui", "alicesaidhi/conch-ui@0.3.1"], ["Immut", "solarhorizon/immut@0.4.4"], ["Janitor", "howmanysmall/janitor@1.18.3"], ["Jecs", "ukendio/jecs@0.11.0"], ["Sift", "csqrl/sift@0.0.11"], ["Signal", "sleitnick/signal@2.0.3"], ["Topbarplus", "1foreverhd/topbarplus@3.4.0"], ["Uilabs", "pepeeltoro41/ui-labs@2.4.2"], ["Vide", "centau/vide@0.4.1"], ["Videcharm", "littensy/vide-charm@0.3.0"]]
+dependencies = [["Beziertween", "arxkdev/beziertween@0.0.3"], ["Conch", "alicesaidhi/conch@0.3.1"], ["Conchui", "alicesaidhi/conch-ui@0.3.1"], ["Immut", "solarhorizon/immut@0.4.4"], ["Janitor", "howmanysmall/janitor@1.18.3"], ["Jecs", "ukendio/jecs@0.11.0"], ["Sift", "csqrl/sift@0.0.11"], ["Signal", "sleitnick/signal@2.0.3"], ["Topbarplus", "1foreverhd/topbarplus@3.4.0"], ["Uilabs", "pepeeltoro41/ui-labs@2.4.2"], ["Vide", "centau/vide@0.4.1"]]
 
 [[package]]
 name = "alicesaidhi/conch"
@@ -61,21 +61,6 @@ dependencies = [["Promise", "howmanysmall/typed-promise@4.0.6"]]
 name = "howmanysmall/typed-promise"
 version = "4.0.6"
 dependencies = [["Promise", "evaera/promise@4.0.0"]]
-
-[[package]]
-name = "littensy/charm"
-version = "0.10.0"
-dependencies = []
-
-[[package]]
-name = "littensy/charm-sync"
-version = "0.3.0"
-dependencies = [["charm", "littensy/charm@0.10.0"]]
-
-[[package]]
-name = "littensy/vide-charm"
-version = "0.3.0"
-dependencies = [["Vide", "centau/vide@0.3.1"], ["charm", "littensy/charm@0.10.0"]]
 
 [[package]]
 name = "pepeeltoro41/ui-labs"
