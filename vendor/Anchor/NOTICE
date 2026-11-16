@@ -1,0 +1,7 @@
+Anchor
+Copyright 2026 Acidgorgon
+
+This product includes software derived from ProfileStore 1.0.3
+(https://github.com/MadStudioRoblox/ProfileStore), Copyright loleris / MadStudio,
+licensed under the Apache License, Version 2.0. src/Core.luau is a modified port of
+ProfileStore.luau; changes are marked "[Anchor]" in the source.

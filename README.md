@@ -39,6 +39,20 @@ The watcher creates the server Feature + `InventoryController`. Delete that shar
 
 Pinned in `rokit.toml`: Rojo, Wally, Blink, Selene. After `wally install`, ModuleLoader needs `ReplicatedStorage.Packages.Janitor`.
 
+## Player data
+
+Saving uses [Anchor](https://acidgorgon.github.io/Anchor/) (session-locked, a drop-in upgrade of ProfileStore), vendored in `vendor/Anchor` and synced to `ServerScriptService.Anchor`. From a server script:
+
+```lua
+local Anchor = require(game.ServerScriptService.Anchor)
+
+local Data = Anchor.new("Main", { Coins = 0, Items = {} })
+Data:Bind() -- loads on join, saves on leave and shutdown
+Data:Update(player, function(data) data.Coins += 10 end)
+```
+
+In Studio, set the `Mock` attribute on the Anchor module to keep test sessions off the real DataStore.
+
 ## Studio sync
 
 Rojo only pushes files into Studio. `./dev` also runs `tools/studio-sync.py`, which does the other direction for scripts: when a script under the Rojo folders (Shared, Server, Client) is edited inside Studio, for example by a Team Create collaborator, the new source is written into the matching repo file.
