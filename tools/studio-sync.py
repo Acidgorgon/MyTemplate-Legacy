@@ -1,5 +1,8 @@
 """Receives script edits made inside Roblox Studio and writes them into the repo.
 
+Also keeps a read-only snapshot of the place's instance tree (models, parts, sounds,
+folders that exist only in Studio) in .studio-sync/tree.json, served at GET /tree.
+
 Run through ./dev (started automatically) or directly: python tools/studio-sync.py
 Pairs with the Studio plugin in tools/StudioSyncPlugin.luau.
 
@@ -25,9 +28,16 @@ WORK = os.path.join(ROOT, ".studio-sync")
 STATE = os.path.join(WORK, "state.json")
 CONFLICTS = os.path.join(WORK, "conflicts")
 LOG = os.path.join(WORK, "sync.log")
+TREE = os.path.join(WORK, "tree.json")
+TREE_SERVICES = ["Workspace", "ReplicatedStorage", "ReplicatedFirst", "ServerScriptService", "ServerStorage", "StarterGui", "StarterPack", "StarterPlayer", "Lighting", "SoundService", "Teams"]
+TREE_DEPTH = 12
+TREE_MAX_NODES = 20000
+TREE_MAX_CHUNKS = 1000
 SUFFIX = {"ModuleScript": "", "Script": ".server", "LocalScript": ".client"}
 LOCK = threading.Lock()
 SKIPPED = set()
+TREE_LOCK = threading.Lock()
+TREE_CHUNKS = {}
 
 
 def load_settings():
@@ -190,6 +200,96 @@ def apply(roots, state, item, initial):
     return "conflict"
 
 
+def tree_settings(settings):
+    services = settings.get("treeServices", TREE_SERVICES)
+    return {
+        "treeServices": [name for name in services if isinstance(name, str)] if isinstance(services, list) else TREE_SERVICES,
+        "treeDepth": int(settings.get("treeDepth", TREE_DEPTH)),
+        "treeMaxNodes": int(settings.get("treeMaxNodes", TREE_MAX_NODES)),
+    }
+
+
+def whole(value):
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+def valid_tree(roots):
+    if not isinstance(roots, list):
+        return False
+    stack = list(roots)
+    while stack:
+        node = stack.pop()
+        if not isinstance(node, dict) or not isinstance(node.get("name"), str) or not isinstance(node.get("className"), str):
+            return False
+        children = node.get("children", [])
+        props = node.get("props", {})
+        if not isinstance(children, list) or not isinstance(props, dict):
+            return False
+        stack.extend(children)
+    return True
+
+
+def read_tree():
+    try:
+        with open(TREE, encoding="utf-8") as handle:
+            return json.load(handle)
+    except (OSError, ValueError):
+        return None
+
+
+def store_tree(payload):
+    roots = payload.get("roots")
+    if not valid_tree(roots):
+        return None
+    hashed = hashlib.sha1(json.dumps(roots, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    with TREE_LOCK:
+        current = read_tree()
+        place = whole(payload.get("placeId"))
+        if current and current.get("hash") == hashed and current.get("placeId") == place:
+            return {"stored": False, "hash": hashed}
+        tree = {
+            "placeId": place,
+            "at": time.time(),
+            "truncated": bool(payload.get("truncated")),
+            "nodeCount": whole(payload.get("nodeCount")),
+            "hash": hashed,
+            "roots": roots,
+        }
+        os.makedirs(WORK, exist_ok=True)
+        temp = TREE + ".tmp"
+        with open(temp, "w", encoding="utf-8") as handle:
+            json.dump(tree, handle, separators=(",", ":"))
+        os.replace(temp, TREE)
+    log("tree  %s nodes%s" % (tree["nodeCount"], " (truncated)" if tree["truncated"] else ""))
+    return {"stored": True, "hash": hashed}
+
+
+def receive_tree(payload):
+    if "chunk" not in payload:
+        return store_tree(payload)
+    key, index, count, chunk = payload.get("id"), whole(payload.get("index")), whole(payload.get("count")), payload.get("chunk")
+    if not isinstance(key, str) or not isinstance(chunk, str) or count is None or index is None:
+        return None
+    if not 0 < count <= TREE_MAX_CHUNKS or not 0 <= index < count:
+        return None
+    with TREE_LOCK:
+        parts = TREE_CHUNKS.get(key)
+        if parts is None or len(parts) != count:
+            TREE_CHUNKS.clear()
+            parts = TREE_CHUNKS[key] = [None] * count
+        parts[index] = chunk
+        if any(part is None for part in parts):
+            return {"received": index}
+        del TREE_CHUNKS[key]
+    try:
+        joined = json.loads("".join(parts))
+    except ValueError:
+        return None
+    return store_tree(joined) if isinstance(joined, dict) else None
+
+
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     roots = []
@@ -203,18 +303,38 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
+        if self.path == "/tree":
+            tree = read_tree()
+            if tree is None:
+                self.reply(404, {"error": "no tree yet"})
+            else:
+                self.reply(200, tree)
+            return
         if self.path != "/config":
             self.reply(404, {"error": "unknown"})
             return
         settings = load_settings()
-        self.reply(200, {
+        config = {
             "placeIds": settings.get("placeIds", []),
             "roots": [root["instance"] for root in Handler.roots],
-        })
+        }
+        config.update(tree_settings(settings))
+        self.reply(200, config)
 
     def do_POST(self):
         length = int(self.headers.get("Content-Length", "0"))
         raw = self.rfile.read(length)
+        if self.path == "/tree":
+            try:
+                payload = json.loads(raw.decode("utf-8"))
+            except (ValueError, UnicodeDecodeError):
+                payload = None
+            result = receive_tree(payload) if isinstance(payload, dict) else None
+            if result is None:
+                self.reply(400, {"error": "bad tree"})
+            else:
+                self.reply(200, result)
+            return
         if self.path != "/sync":
             self.reply(404, {"error": "unknown"})
             return
