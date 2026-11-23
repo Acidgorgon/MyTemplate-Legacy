@@ -1,2 +1,3 @@
+-- The client module goes to ReplicatedStorage. The server module goes to ServerScriptService, so clients never download it.
 option ClientOutput = "src/shared/events/client.luau"
-option ServerOutput = "src/shared/events/server.luau"
+option ServerOutput = "src/server/events/server.luau"

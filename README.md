@@ -39,6 +39,8 @@ The watcher creates the server Feature + `InventoryController`. Delete that shar
 
 Pinned in `rokit.toml`: Rojo, Wally, [Current](https://acidgorgon.github.io/Current/) (networking, compiles `events.blink`; a faster two-way fork of Blink), [Ripple](https://acidgorgon.github.io/Ripple/) (state sync, compiles `game.ripple`), Selene. After `wally install`, ModuleLoader needs `ReplicatedStorage.Packages.Janitor`.
 
+`events.blink` writes the client module to `src/shared/events/client.luau` (`ReplicatedStorage.Shared.events.client`) and the server module to `src/server/events/server.luau` (`ServerScriptService.Server.events.server`). Everything in ReplicatedStorage is downloaded by every client, so keep server modules out of it.
+
 ## Player data and state
 
 Saving uses [Anchor](https://acidgorgon.github.io/Anchor/) (session-locked, a drop-in upgrade of ProfileStore), vendored in `vendor/Anchor` and synced to `ServerScriptService.Anchor`. Replication uses [Ripple](https://acidgorgon.github.io/Ripple/): describe the state in `game.ripple`, and `./dev` regenerates `src/shared/Ripple/Server.luau` and `Client.luau` whenever you save it (or run `ripple game.ripple --out src/shared/Ripple`). Commit the generated files.
